@@ -1,33 +1,45 @@
 CC = gcc
-CFLAGS = -Wall -Wextra 
-LIBS   = 
-SOURCE = sims.c
+CFLAGS = -Wall -Wextra -Iinclude
+LIBS = `pkg-config --libs sdl3-ttf`
+
+SOURCES = $(wildcard src/*.c)
+OBJECTS = $(patsubst src/%.c,build/%.o,$(SOURCES))
+EXTHEADERS = $(wildcard src/*.h ext/include/*.h)
+
 TARGET = build/sims
-HEADER = include/cx.h
 
-all: $(TARGET)
-
-CLANG ?= n
+# Optional flags
 GDB ?= n
-RUN_CMD ?= ./$(TARGET)
+CLANG ?= n
 
-ifeq ($(GDB), y)
+ifeq ($(GDB),y)
     CFLAGS += -ggdb
-	RUN_CMD = gdb ./$(TARGET)	
 endif
 
 ifeq ($(CLANG),y)
-	CC = clang
-	CFLAGS += -fsanitize=address
+    CC = clang
+    CFLAGS += -fsanitize=address
 endif
 
-$(TARGET): $(SOURCE) $(HEADER)
-	$(CC)  $(CFLAGS) $(LIBS) $< -o $@
+all: $(TARGET)
+
+$(TARGET): $(OBJECTS)
+	$(CC) $(CFLAGS) $(OBJECTS) $(LIBS) -o $@
+
+build/%.o: src/%.c $(HEADERS) | build
+	$(CC) $(CFLAGS) -c $< -o $@
+
+build:
+	mkdir -p build
 
 clean:
-	rm -f $(TARGET)
-
-.PHONY: run all clean
+	rm -f $(TARGET) $(OBJECTS)
 
 run: $(TARGET)
-	$(RUN_CMD)
+ifeq ($(GDB),y)
+	gdb ./$(TARGET)
+else
+	./$(TARGET)
+endif
+
+.PHONY: all clean run
