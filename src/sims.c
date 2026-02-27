@@ -6,7 +6,6 @@
 #include <SDL3_ttf/SDL_ttf.h>
 
 #include "common.h"
-#include "rotational_dynamics.h"
 
 #define INIT_WINDOW_W 600
 #define INIT_WINDOW_H 400
@@ -50,14 +49,8 @@ static void setup_fps_ttf(TTF_TextEngine *text_engine)
     if (!fps_text.font) APP_FATAL("Failed to load font");
     fps_text.font_sz = FPS_FONT_SZ;
 
-    SDL_strlcpy(fps_text.content, "Avg Fps(vsync: disabled) = 0.0f",
-                sizeof(fps_text.content));
-
-    fps_text.ttf_text = TTF_CreateText(
-        text_engine, fps_text.font, fps_text.content, strlen(fps_text.content));
+    fps_text.ttf_text = TTF_CreateText(text_engine, fps_text.font, NULL, 0);
     if (!fps_text.ttf_text) APP_FATAL("Failed to create text");
-
-    TTF_GetTextSize(fps_text.ttf_text, &fps_text.text_w, &fps_text.text_h);
 }
 
 static void sdl_ttf_init(AppState *s)
@@ -98,6 +91,7 @@ static void display_debug_fps(float x, float y)
 
         c        = 0;
         prev_fps = fps;
+
     } else {
         SDL_snprintf(fps_text.content, sizeof(fps_text.content),
                      "Avg fps(vsync: %s) = %.2f",
@@ -106,6 +100,10 @@ static void display_debug_fps(float x, float y)
 
     TTF_SetTextString(fps_text.ttf_text, fps_text.content,
                       SDL_strlen(fps_text.content));
+
+    // NOTE: might not need this
+    TTF_GetTextSize(fps_text.ttf_text, &fps_text.text_w, &fps_text.text_h);
+
     TTF_DrawRendererText(fps_text.ttf_text, x, y);
 
     previous_frame = current_frame;
@@ -121,9 +119,7 @@ SDL_AppResult SDL_AppIterate(void *appstate)
     SDL_RenderClear(s->renderer);
 
     TTF_SetTextColor(fps_text.ttf_text, GREEN);
-    display_debug_fps(20, 10);
-
-    rotdyn_sim_start(s->renderer, s->win_cfg);
+    display_debug_fps(s->win_cfg.win_w - fps_text.text_w, 2);
 
     SDL_RenderPresent(s->renderer);
 
@@ -145,21 +141,23 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[])
     s->win = SDL_CreateWindow("simulations", INIT_WINDOW_W, INIT_WINDOW_H, 0);
     if (!s->win) APP_FATAL("Couldn't create window");
 
-    APP_LOG(LOG_INFO, "Welcome to simulation");
+    APP_LOG(LOG_INFO, "Welcome to simulation!");
 
     s->renderer = SDL_CreateRenderer(s->win, NULL);
     if (!s->renderer) APP_FATAL("Could not Create renderer");
 
+    s->win_cfg.win_w = INIT_WINDOW_W;
+    s->win_cfg.win_h = INIT_WINDOW_H;
+
     if (enable_vsync) SDL_SetRenderVSync(s->renderer, 1);
 
+    // tff
     sdl_ttf_init(s);
     setup_fps_ttf(s->text_engine);
 
+    // performance
     freq           = SDL_GetPerformanceFrequency();
     previous_frame = SDL_GetPerformanceCounter();
-
-    s->win_cfg.win_w = INIT_WINDOW_W;
-    s->win_cfg.win_h = INIT_WINDOW_H;
 
     *appstate = (void *)s;
     return SDL_APP_CONTINUE;
@@ -223,10 +221,10 @@ void SDL_AppQuit(void *appstate, SDL_AppResult result)
 
     TTF_CloseFont(s->global_font);
     TTF_CloseFont(fps_text.font);
+
     TTF_DestroyText(fps_text.ttf_text);
     TTF_DestroyRendererTextEngine(s->text_engine);
 
-    rotdyn_cleanup();
     free(s);
     APP_LOG(LOG_INFO, "Good Bye.");
 }

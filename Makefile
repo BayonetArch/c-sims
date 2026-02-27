@@ -21,6 +21,14 @@ ifeq ($(CLANG),y)
     CFLAGS += -fsanitize=address
 endif
 
+ifeq ($(O),2)
+    CFLAGS += -O2
+endif
+
+ifeq ($(O),3)
+    CFLAGS += -O3
+endif
+
 all: $(TARGET)
 
 $(TARGET): $(OBJECTS)

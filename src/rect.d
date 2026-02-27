@@ -1,31 +1,4 @@
-/* rotational_dynamics.c */
 
-#include "rotational_dynamics.h"
-
-#define TEXT_RECT_W 100
-#define TEXT_RECT_H 100
-
-typedef struct {
-    SDL_Texture *texture_rect;
-} RotDynState;
-
-static RotDynState state = {0};
-
-void rotdyn_cleanup()
-{
-    if (state.texture_rect) SDL_DestroyTexture(state.texture_rect);
-}
-
-void rotdyn_draw_body_axis(Vec2f p1, Vec2f p2, float thickness)
-{
-    UNUSED(p1);
-
-    UNUSED(p2);
-    UNUSED(thickness);
-}
-
-bool rotdyn_sim_start(SDL_Renderer *renderer, WinCfg wincfg)
-{
     static float theta  = 0.0f;
     float        dest_w = 100.0f;
     float        dest_h = 100.0f;

@@ -47,11 +47,12 @@ void render_filled_circlev(SDL_Renderer *renderer, Vec2f center, float r);
 #define WHITE  255, 255, 255, 255
 #define BLACK  0, 0, 0, 255
 
-#define REDA(a)   255, 0, 0, (a)
-#define GREENA(a) 0, 255, 0, (a)
-#define BLUEA(a)  0, 0, 255, (a)
-#define WHITEA(a) 255, 255, 255, (a)
-#define BLACKA(a) 0, 0, 0, (a)
+#define REDA(a)    255, 0, 0, (a)
+#define GREENA(a)  0, 255, 0, (a)
+#define YELLOWA(a) 255, 255, 0, (a)
+#define BLUEA(a)   0, 0, 255, (a)
+#define WHITEA(a)  255, 255, 255, (a)
+#define BLACKA(a)  0, 0, 0, (a)
 
 #define APP_LOG(level, fmt, ...)                                               \
     do {                                                                       \
